@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora vai fazer 2 aninhos! 🐞</title>
+<link rel="icon" href="assets/joaninha.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E63946;
+    --red-dark: #B3212C;
+    --black: #221F1F;
+    --white: #FFFFFF;
+    --cream: #FFFBF4;
+    --green: #3FA34D;
+    --green-dark: #2C7A3D;
+    --yellow: #FFC93C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Nunito', sans-serif;
+    color: var(--black);
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,201,60,0.18) 0, transparent 45%),
+      radial-gradient(circle at 90% 20%, rgba(63,163,77,0.14) 0, transparent 40%),
+      var(--cream);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  .container {
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .hero img.mascot {
+    width: 150px;
+    height: 150px;
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.15));
+  }
+
+  .hero h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 30px;
+    line-height: 1.2;
+    color: var(--red);
+    margin: 10px 0 4px;
+  }
+
+  .hero h1 .num {
+    display: inline-block;
+    background: var(--red);
+    color: var(--white);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    line-height: 40px;
+    font-size: 22px;
+    vertical-align: middle;
+    margin: 0 2px;
+  }
+
+  .hero p.subtitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0;
+  }
+
+  .card {
+    background: var(--white);
+    border-radius: 22px;
+    padding: 20px 20px;
+    box-shadow: 0 10px 24px rgba(34,31,31,0.08);
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid var(--black);
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    width: 60px;
+    height: 60px;
+    background: var(--yellow);
+    border-radius: 50%;
+    opacity: 0.35;
+  }
+
+  .event-details h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 18px;
+    margin: 0 0 12px;
+    color: var(--black);
+  }
+
+  .event-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 14.5px;
+  }
+
+  .event-row .emoji { font-size: 20px; line-height: 1.3; }
+  .event-row a { color: var(--green-dark); text-decoration: underline; }
+
+  .theme-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+
+  #guestArea .loading {
+    text-align: center;
+    font-weight: 700;
+    color: var(--black);
+    padding: 20px 0;
+  }
+
+  #guestArea h2 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+
+  #guestArea .hint {
+    font-size: 13.5px;
+    color: #555;
+    margin: 0 0 16px;
+  }
+
+  .person-row {
+    border: 2px solid #EFE3D6;
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .person-row .name {
+    font-weight: 800;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    border: 2px solid var(--black);
+    background: var(--white);
+    border-radius: 999px;
+    padding: 9px 8px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--black);
+  }
+
+  .toggle-btn.yes.active {
+    background: var(--green);
+    border-color: var(--green-dark);
+    color: var(--white);
+  }
+
+  .toggle-btn.no.active {
+    background: var(--red);
+    border-color: var(--red-dark);
+    color: var(--white);
+  }
+
+  .mark-all {
+    background: none;
+    border: none;
+    color: var(--green-dark);
+    font-weight: 800;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0 0 14px;
+  }
+
+  textarea#message {
+    width: 100%;
+    border: 2px solid #EFE3D6;
+    border-radius: 14px;
+    padding: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 70px;
+    margin-top: 6px;
+  }
+
+  label.message-label {
+    font-weight: 800;
+    font-size: 14px;
+    display: block;
+    margin-top: 6px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--red);
+    color: var(--white);
+    border: 3px solid var(--black);
+    border-radius: 999px;
+    padding: 14px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    cursor: pointer;
+    margin-top: 16px;
+    box-shadow: 0 6px 0 var(--red-dark);
+    transition: transform 0.1s ease;
+  }
+
+  .submit-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--red-dark); }
+  .submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .deadline-note {
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+    margin-top: 8px;
+  }
+
+  .success {
+    text-align: center;
+    padding: 10px 0 4px;
+  }
+
+  .success img { width: 90px; margin-bottom: 8px; }
+
+  .success h2 {
+    font-family: 'Fredoka', sans-serif;
+    color: var(--green-dark);
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+
+  .success p { font-size: 14.5px; margin: 0; }
+
+  .error-box {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .error-box h2 {
+    font-family: 'Fredoka', sans-serif;
+    color: var(--red);
+    font-size: 19px;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  .leaf-corner {
+    position: fixed;
+    width: 90px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .leaf-corner.tl { top: -20px; left: -25px; transform: rotate(-20deg); }
+  .leaf-corner.br { bottom: -20px; right: -25px; transform: rotate(160deg); }
+</style>
+</head>
+<body>
+
+<img src="assets/folha.png" class="leaf-corner tl" alt="">
+<img src="assets/folha.png" class="leaf-corner br" alt="">
+
+<div class="container">
+
+  <div class="hero">
+    <img src="assets/joaninha.png" class="mascot" alt="Joaninha">
+    <h1>Aurora vai fazer <span class="num">2</span> aninhos!</h1>
+    <p class="subtitle">E você tá super convidado(a) pra festejar com a gente 🎉</p>
+  </div>
+
+  <div class="card event-details">
+    <span class="theme-tag">🐞 Tema: Joaninha</span>
+    <h2 style="margin-top:12px;">Detalhes da festa</h2>
+    <div class="event-row"><span class="emoji">📅</span><span>Domingo, 05/07/2026, às 16h</span></div>
+    <div class="event-row">
+      <span class="emoji">📍</span>
+      <span>Salão de Festas — Condomínio Reserva das Palmeiras<br>
+      R. Sra. do Pôrto, 1330 - Palmeiras, Belo Horizonte/MG<br>
+      <a href="https://www.google.com/maps/search/?api=1&query=R.+Sra.+do+P%C3%B4rto%2C+1330+-+Palmeiras%2C+Belo+Horizonte+-+MG" target="_blank" rel="noopener">Ver no mapa →</a></span>
+    </div>
+  </div>
+
+  <div class="card" id="guestCard">
+    <div id="guestArea"><p class="loading">Carregando seu convite... 🐞</p></div>
+  </div>
+
+  <footer>Com carinho, Rafael e Luiza 💛</footer>
+</div>
+
+<script>
+const API_BASE = "https://aurora-rsvp.dalmomarinho-c.workers.dev"; // ajuste se o nome do Worker mudar
+
+function getToken() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("c");
+}
+
+function personRow(name, attending) {
+  const yesActive = attending === true ? "active" : "";
+  const noActive = attending === false ? "active" : "";
+  return `
+    <div class="person-row" data-name="${name}">
+      <div class="name">${name}</div>
+      <div class="toggle-group">
+        <button type="button" class="toggle-btn yes ${yesActive}" data-value="true">Vem! 🎉</button>
+        <button type="button" class="toggle-btn no ${noActive}" data-value="false">Não vai poder 😢</button>
+      </div>
+    </div>`;
+}
+
+function renderForm(data) {
+  const guestArea = document.getElementById("guestArea");
+  const prevByName = {};
+  if (data.response) {
+    data.response.people.forEach(p => prevByName[p.name] = p.attending);
+  }
+
+  const rowsHtml = data.people.map(name => personRow(name, prevByName[name])).join("");
+  const markAllBtn = data.people.length > 1
+    ? `<button type="button" class="mark-all" id="markAllYes">Marcar todo mundo como "Vem!"</button>`
+    : "";
+
+  guestArea.innerHTML = `
+    <h2>Olá, ${data.label}! 👋</h2>
+    <p class="hint">Confirme a presença de cada pessoa do convite:</p>
+    ${rowsHtml}
+    ${markAllBtn}
+    <label class="message-label" for="message">Deixe um recadinho pra Aurora (opcional) 💌</label>
+    <textarea id="message" maxlength="500" placeholder="Escreva aqui...">${data.response ? (data.response.message || "") : ""}</textarea>
+    <button class="submit-btn" id="submitBtn">${data.response ? "Atualizar confirmação" : "Confirmar presença 🐞"}</button>
+    <p class="deadline-note">Confirme até ${formatDate(data.deadline)}</p>
+  `;
+
+  document.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const group = btn.closest(".person-row").querySelectorAll(".toggle-btn");
+      group.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  const markAll = document.getElementById("markAllYes");
+  if (markAll) {
+    markAll.addEventListener("click", () => {
+      document.querySelectorAll(".person-row").forEach(row => {
+        row.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+        row.querySelector(".toggle-btn.yes").classList.add("active");
+      });
+    });
+  }
+
+  document.getElementById("submitBtn").addEventListener("click", () => submitRsvp(data));
+}
+
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+async function submitRsvp(data) {
+  const rows = document.querySelectorAll(".person-row");
+  const people = [];
+  let allAnswered = true;
+
+  rows.forEach(row => {
+    const activeBtn = row.querySelector(".toggle-btn.active");
+    if (!activeBtn) { allAnswered = false; return; }
+    people.push({ name: row.dataset.name, attending: activeBtn.dataset.value === "true" });
+  });
+
+  if (!allAnswered) {
+    alert("Por favor, responda Vem ou Não vai poder para todas as pessoas do convite. 🐞");
+    return;
+  }
+
+  const message = document.getElementById("message").value;
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  try {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/rsvp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, people, message }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || "erro");
+    renderSuccess(people);
+  } catch (err) {
+    alert("Ops! Não conseguimos enviar sua confirmação agora. Tente novamente em instantes.");
+    btn.disabled = false;
+    btn.textContent = "Confirmar presença 🐞";
+  }
+}
+
+function renderSuccess(people) {
+  const anyYes = people.some(p => p.attending);
+  const guestArea = document.getElementById("guestArea");
+  guestArea.innerHTML = `
+    <div class="success">
+      <img src="assets/joaninha-folha.png" alt="Joaninha feliz">
+      <h2>${anyYes ? "Presença confirmada!" : "Resposta registrada"}</h2>
+      <p>${anyYes ? "Não vemos a hora de comemorar com você! 🐞🎉" : "Que pena que não vai dar dessa vez! Sentiremos sua falta. 💛"}</p>
+    </div>`;
+}
+
+function renderError(message) {
+  const guestArea = document.getElementById("guestArea");
+  guestArea.innerHTML = `
+    <div class="error-box">
+      <h2>Convite não encontrado 🐞</h2>
+      <p>${message}</p>
+    </div>`;
+}
+
+async function init() {
+  const token = getToken();
+  if (!token) {
+    renderError("Verifique se você está usando o link que recebeu de Rafael e Luiza.");
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/guest?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (!data.ok) {
+      renderError("Não encontramos esse convite. Fale com Rafael e Luiza para confirmar o link.");
+      return;
+    }
+    renderForm(data);
+  } catch (err) {
+    renderError("Não conseguimos carregar seu convite agora. Tente novamente em instantes.");
+  }
+}
+
+init();
+</script>
+</body>
+</html>

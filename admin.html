@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — Aniversário da Aurora</title>
+<link rel="icon" href="assets/joaninha.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E63946;
+    --red-dark: #B3212C;
+    --black: #221F1F;
+    --white: #FFFFFF;
+    --cream: #FFFBF4;
+    --green: #3FA34D;
+    --green-dark: #2C7A3D;
+    --yellow: #FFC93C;
+    --gray: #9AA0A6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Nunito', sans-serif;
+    color: var(--black);
+    background: var(--cream);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 {
+    font-family: 'Fredoka', sans-serif;
+    color: var(--red);
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  h1 img { width: 40px; }
+  .subtitle { font-weight: 700; color: #555; margin: 0 0 20px; font-size: 14px; }
+
+  /* Login */
+  #loginBox {
+    max-width: 320px;
+    margin: 80px auto;
+    background: var(--white);
+    border: 3px solid var(--black);
+    border-radius: 20px;
+    padding: 26px;
+    text-align: center;
+  }
+  #loginBox img { width: 70px; margin-bottom: 10px; }
+  #loginBox input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 2px solid #EFE3D6;
+    font-size: 15px;
+    margin: 10px 0;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  #loginBox button, .action-btn {
+    width: 100%;
+    background: var(--red);
+    color: var(--white);
+    border: 3px solid var(--black);
+    border-radius: 999px;
+    padding: 10px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  #loginError { color: var(--red); font-size: 13px; font-weight: 800; min-height: 18px; }
+
+  /* Summary */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .summary .box {
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .summary .box .num { font-family: 'Fredoka', sans-serif; font-size: 24px; }
+  .summary .box .label { font-size: 11.5px; font-weight: 700; color: #555; }
+  .summary .confirmado .num { color: var(--green-dark); }
+  .summary .recusado .num { color: var(--red); }
+  .summary .pendente .num { color: var(--gray); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid var(--black);
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 13.5px;
+    border-bottom: 1px solid #F0E7DA;
+    vertical-align: top;
+  }
+  th {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 11.5px;
+    color: var(--white);
+  }
+  .badge.confirmado { background: var(--green); }
+  .badge.nao_vem { background: var(--red); }
+  .badge.parcial { background: var(--yellow); color: var(--black); }
+  .badge.pendente { background: var(--gray); }
+
+  .person-line { font-size: 12.5px; margin-bottom: 2px; }
+  .person-line .yes { color: var(--green-dark); font-weight: 800; }
+  .person-line .no { color: var(--red); font-weight: 800; }
+  .person-line .undef { color: var(--gray); }
+
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+  .toolbar button.action-btn { width: auto; padding: 9px 18px; font-size: 13px; }
+  .toolbar .refresh { background: var(--green); border-color: var(--green-dark); }
+
+  .empty-msg { text-align: center; padding: 30px; font-weight: 700; color: #777; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="loginBox">
+    <img src="assets/joaninha.png" alt="Joaninha">
+    <div style="font-family:'Fredoka',sans-serif; font-size:18px; color:var(--red);">Painel da festa da Aurora</div>
+    <input type="password" id="pwInput" placeholder="Senha" inputmode="numeric" autofocus>
+    <div id="loginError"></div>
+    <button id="loginBtn">Entrar</button>
+  </div>
+
+  <div id="panel" style="display:none;">
+    <h1><img src="assets/joaninha.png" alt="">Painel — Aurora 2 aninhos 🐞</h1>
+    <p class="subtitle">Confirmações de presença em tempo real</p>
+
+    <div class="toolbar">
+      <div class="summary" id="summary" style="flex:1; margin-bottom:0;"></div>
+      <button class="action-btn refresh" id="refreshBtn">↻ Atualizar</button>
+    </div>
+
+    <div id="tableWrap"></div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = "https://aurora-rsvp.dalmomarinho-c.workers.dev"; // ajuste se o nome do Worker mudar
+const STATUS_LABELS = {
+  confirmado: "Confirmado",
+  nao_vem: "Não vem",
+  parcial: "Parcial",
+  pendente: "Pendente",
+};
+
+function savedPassword() {
+  return sessionStorage.getItem("aurora_admin_pw");
+}
+
+async function loadData(pw) {
+  const res = await fetch(`${API_BASE}/admin?pw=${encodeURIComponent(pw)}`);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || "erro");
+  return data;
+}
+
+function renderSummary(guests) {
+  let confirmados = 0, recusados = 0, pendentes = 0, totalPessoasConfirmadas = 0;
+  guests.forEach(g => {
+    if (g.status === "pendente") pendentes++;
+    if (g.status === "confirmado" || g.status === "parcial") confirmados++;
+    if (g.status === "nao_vem") recusados++;
+    if (g.response) {
+      totalPessoasConfirmadas += g.response.people.filter(p => p.attending).length;
+    }
+  });
+
+  document.getElementById("summary").innerHTML = `
+    <div class="box confirmado"><div class="num">${confirmados}</div><div class="label">Convites confirmados</div></div>
+    <div class="box recusado"><div class="num">${recusados}</div><div class="label">Não vêm</div></div>
+    <div class="box pendente"><div class="num">${pendentes}</div><div class="label">Pendentes</div></div>
+    <div class="box"><div class="num">${totalPessoasConfirmadas}</div><div class="label">Pessoas confirmadas</div></div>
+  `;
+}
+
+function personLine(name, attending) {
+  if (attending === undefined) return `<div class="person-line undef">${name} — sem resposta</div>`;
+  return attending
+    ? `<div class="person-line"><span class="yes">✓</span> ${name}</div>`
+    : `<div class="person-line"><span class="no">✗</span> ${name}</div>`;
+}
+
+function renderTable(guests) {
+  if (guests.length === 0) {
+    document.getElementById("tableWrap").innerHTML = `<p class="empty-msg">Nenhum convite cadastrado ainda.</p>`;
+    return;
+  }
+
+  const rows = guests.map(g => {
+    const attendingByName = {};
+    if (g.response) g.response.people.forEach(p => attendingByName[p.name] = p.attending);
+    const peopleHtml = g.people.map(name => personLine(name, attendingByName[name])).join("");
+    const respondedAt = g.response ? new Date(g.response.respondedAt).toLocaleString("pt-BR") : "—";
+    const message = g.response && g.response.message ? g.response.message : "—";
+    return `
+      <tr>
+        <td><strong>${g.label}</strong></td>
+        <td>${peopleHtml}</td>
+        <td><span class="badge ${g.status}">${STATUS_LABELS[g.status]}</span></td>
+        <td>${message}</td>
+        <td>${respondedAt}</td>
+      </tr>`;
+  }).join("");
+
+  document.getElementById("tableWrap").innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Convite</th><th>Pessoas</th><th>Status</th><th>Recado</th><th>Respondido em</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function showPanel(pw) {
+  try {
+    const data = await loadData(pw);
+    sessionStorage.setItem("aurora_admin_pw", pw);
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("panel").style.display = "block";
+    renderSummary(data.guests);
+    renderTable(data.guests);
+  } catch (err) {
+    sessionStorage.removeItem("aurora_admin_pw");
+    document.getElementById("loginError").textContent = "Senha incorreta ou erro ao carregar.";
+  }
+}
+
+document.getElementById("loginBtn").addEventListener("click", () => {
+  const pw = document.getElementById("pwInput").value.trim();
+  if (pw) showPanel(pw);
+});
+document.getElementById("pwInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("loginBtn").click();
+});
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  const pw = savedPassword();
+  if (pw) showPanel(pw);
+});
+
+const existingPw = savedPassword();
+if (existingPw) showPanel(existingPw);
+</script>
+</body>
+</html>
