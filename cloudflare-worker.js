@@ -91,6 +91,20 @@ async function handlePostRsvp(request, env) {
   return json({ ok: true, status: computeStatus(record) });
 }
 
+async function handleAdminReset(request, env) {
+  const body = await request.json().catch(() => null);
+  if (!body || body.pw !== env.ADMIN_PASSWORD) {
+    return json({ ok: false, error: "senha_invalida" }, 401);
+  }
+
+  const tokens = Array.isArray(body.tokens) && body.tokens.length > 0
+    ? body.tokens
+    : GUEST_LIST.map((g) => g.token);
+
+  await Promise.all(tokens.map((t) => env.RSVP_KV.delete(`rsvp:${t}`)));
+  return json({ ok: true, cleared: tokens });
+}
+
 async function handleAdmin(request, env) {
   const url = new URL(request.url);
   const pw = url.searchParams.get("pw");
@@ -134,6 +148,9 @@ export default {
       }
       if (url.pathname === "/admin" && request.method === "GET") {
         return await handleAdmin(request, env);
+      }
+      if (url.pathname === "/admin/reset" && request.method === "POST") {
+        return await handleAdminReset(request, env);
       }
       return json({ ok: false, error: "rota_nao_encontrada" }, 404);
     } catch (err) {
