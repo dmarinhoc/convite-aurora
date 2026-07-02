@@ -11,12 +11,26 @@
 // ============================================================
 
 const GUEST_LIST = [
-  { token: "pcdyn8", label: "Família Marinho", people: ["Dalmo Marinho", "Philip Russo"] },
-  { token: "y8yya5", label: "Djanine Carolina", people: ["Djanine Carolina"] },
-  { token: "wry95e", label: "Família Paula", people: ["Luiza Marinho Paula", "Rafael Paula"] },
+  { token: "wapce7", label: "Família Paula", people: ["Celia Paula", "José Carlos de Paula", "Marina da Cruz", "Juliana Noemia", "Rafael Lopes"] },
+  { token: "zyfy2v", label: "Elisabete & Cristóvão", people: ["Elisabe Noémia", "Cristóvão"] },
+  { token: "rw79km", label: "Família De Paula", people: ["Tiago de Paula", "Sorreyla de Paula", "Gabriel de Paula"] },
+  { token: "yabsge", label: "Família Mainarte", people: ["Luiza Marinho", "Beatriz Mainarte", "Wanderlei Mainarte"] },
+  { token: "bbb56p", label: "Siqueira", people: ["Laura Siqueira", "Joyce Siqueira", "Warley Siqueira"] },
+  { token: "wpjqze", label: "Álvaro e Valéria", people: ["Álvaro", "Valéria"] },
+  { token: "ndgp47", label: "Família Nuvem", people: ["Felipe Nuvem", "Joyce Nuvem"] },
+  { token: "24czfm", label: "Vovó", people: ["Angela Carmo", "Dalmo Carmo"] },
+  { token: "hjchrr", label: "Dalmo e Phil", people: ["Dalmo", "Phil"] },
+  { token: "kjmj63", label: "Dede", people: ["Dede"] },
+  { token: "7m429u", label: "Luana", people: ["Luana"] },
+  { token: "a5j5ce", label: "Família Paula", people: ["Alessandro", "Mateus", "João Vitor"] },
+  { token: "5psdeh", label: "Denise", people: ["Denise"] },
+  { token: "46mwmt", label: "Família Assis", people: ["Elisangela Assis", "Renato Assis", "Maria Eduarda Assis", "Brenda Assis", "Marcos Assis"] },
+  { token: "8scrfe", label: "Giovane e Bárbara", people: ["Giovane", "Bárbara"] },
+  { token: "at5eaj", label: "Família Bicalho", people: ["Rafael Bicalho", "Camila Russo"] },
+  { token: "5cbsez", label: "Família Garcia", people: ["Cândida Garcia", "Jessica Garcia", "Júlia Garcia", "Nicole Garcia", "Vanessa Garcia"] },
 ];
 
-const RSVP_DEADLINE = "2026-08-23";
+const RSVP_DEADLINE = "2026-08-21";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
