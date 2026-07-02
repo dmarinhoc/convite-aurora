@@ -11,7 +11,7 @@
 // ============================================================
 
 const GUEST_LIST = [
-  { token: "wapce7", label: "Família Paula", people: ["Celia Paula", "José Carlos de Paula", "Marina da Cruz", "Juliana Noemia", "Rafael Lopes"] },
+  { token: "wapce7", label: "Família Paula (Célia)", people: ["Celia Paula", "José Carlos de Paula", "Marina da Cruz", "Juliana Noemia", "Rafael Lopes"] },
   { token: "zyfy2v", label: "Elisabete & Cristóvão", people: ["Elisabe Noémia", "Cristóvão"] },
   { token: "rw79km", label: "Família De Paula", people: ["Tiago de Paula", "Sorreyla de Paula", "Gabriel de Paula"] },
   { token: "yabsge", label: "Família Mainarte", people: ["Luiza Marinho", "Beatriz Mainarte", "Wanderlei Mainarte"] },
@@ -22,7 +22,7 @@ const GUEST_LIST = [
   { token: "hjchrr", label: "Dalmo e Phil", people: ["Dalmo", "Phil"] },
   { token: "kjmj63", label: "Dede", people: ["Dede"] },
   { token: "7m429u", label: "Luana", people: ["Luana"] },
-  { token: "a5j5ce", label: "Família Paula", people: ["Alessandro", "Mateus", "João Vitor"] },
+  { token: "a5j5ce", label: "Família Paula (Alessandro)", people: ["Alessandro", "Mateus", "João Vitor"] },
   { token: "5psdeh", label: "Denise", people: ["Denise"] },
   { token: "46mwmt", label: "Família Assis", people: ["Elisangela Assis", "Renato Assis", "Maria Eduarda Assis", "Brenda Assis", "Marcos Assis"] },
   { token: "8scrfe", label: "Giovane e Bárbara", people: ["Giovane", "Bárbara"] },
