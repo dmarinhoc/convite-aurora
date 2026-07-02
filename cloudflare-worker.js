@@ -12,7 +12,7 @@
 
 const GUEST_LIST = [
   { token: "wapce7", label: "Família Paula (Célia)", people: ["Celia Paula", "José Carlos de Paula", "Marina da Cruz", "Juliana Noemia", "Rafael Lopes"] },
-  { token: "zyfy2v", label: "Elisabete & Cristóvão", people: ["Elisabe Noémia", "Cristóvão"] },
+  { token: "zyfy2v", label: "Elisabete & Cristóvão", people: ["Elisabete Noémia", "Cristóvão"] },
   { token: "rw79km", label: "Família De Paula", people: ["Tiago de Paula", "Sorreyla de Paula", "Gabriel de Paula"] },
   { token: "yabsge", label: "Família Mainarte", people: ["Luiza Marinho", "Beatriz Mainarte", "Wanderlei Mainarte"] },
   { token: "bbb56p", label: "Siqueira", people: ["Laura Siqueira", "Joyce Siqueira", "Warley Siqueira"] },
