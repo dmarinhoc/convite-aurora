@@ -1,6 +1,6 @@
 // ============================================================
 // Worker "aurora-rsvp" — API de confirmação de presença
-// Festa da Aurora (2 aninhos, tema Joaninha) — 06/11/2026
+// Festa da Aurora (2 aninhos, tema Joaninha) — 06/09/2026
 //
 // Como editar a lista de convidados:
 // 1. Adicione/edite um item no array GUEST_LIST abaixo.
