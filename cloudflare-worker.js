@@ -29,7 +29,7 @@ const GUEST_LIST = [
   { token: "at5eaj", label: "Família Bicalho", people: ["Rafael Bicalho", "Camila Russo"] },
   { token: "5cbsez", label: "Família Garcia", people: ["Cândida Garcia", "Jessica Garcia", "Júlia Garcia", "Nicole Garcia", "Vanessa Garcia"] },
   { token: "2bv3th", label: "Família Eloy", people: ["Gabriela Eloy", "Ana Beatriz Eloy"] },
-  { token: "f2b3vs", label: "Bruno e Maíra", people: ["Bruno", "Maíra"] },
+  { token: "f2b3vs", label: "Bruno e Mayra", people: ["Bruno", "Mayra"] },
 ];
 
 const RSVP_DEADLINE = "2026-08-21";
