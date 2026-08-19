@@ -189,6 +189,20 @@
     font-weight: 700;
     padding: 3px 6px;
   }
+  .photo-item .delete-btn {
+    position: absolute;
+    top: 5px; right: 5px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--white);
+    border: 2px solid var(--white);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 20px;
+    cursor: pointer;
+    z-index: 2;
+  }
   .photo-count { font-weight: 800; margin-bottom: 14px; color: #555; font-size: 13.5px; }
 </style>
 </head>
@@ -368,11 +382,37 @@ async function loadPhotos() {
         : `<img src="${fileUrl}" loading="lazy" alt="">`;
       const when = p.uploaded ? new Date(p.uploaded).toLocaleString("pt-BR") : "";
       return `
-        <a class="photo-item" href="${fileUrl}" target="_blank" rel="noopener">
-          ${media}
-          <div class="meta">${when} · ${formatBytes(p.size)}</div>
-        </a>`;
+        <div class="photo-item" data-key="${p.key.replace(/"/g, "&quot;")}">
+          <button class="delete-btn" title="Excluir">×</button>
+          <a href="${fileUrl}" target="_blank" rel="noopener">
+            ${media}
+            <div class="meta">${when} · ${formatBytes(p.size)}</div>
+          </a>
+        </div>`;
     }).join("");
+
+    photoGrid.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const item = btn.closest(".photo-item");
+        const key = item.dataset.key;
+        if (!confirm("Excluir esse arquivo permanentemente?")) return;
+        btn.disabled = true;
+        try {
+          const res = await fetch(`${API_BASE}/photos/delete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pw: savedPassword(), key }),
+          });
+          const result = await res.json();
+          if (!result.ok) throw new Error(result.error || "erro");
+          item.remove();
+        } catch (err) {
+          alert("Não foi possível excluir agora.");
+          btn.disabled = false;
+        }
+      });
+    });
   } catch (err) {
     photoCount.textContent = "Erro ao carregar fotos.";
   }

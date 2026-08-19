@@ -194,6 +194,17 @@ async function handlePhotoFile(request, env) {
   return new Response(obj.body, { headers });
 }
 
+async function handleDeletePhoto(request, env) {
+  const body = await request.json().catch(() => null);
+  if (!body || body.pw !== env.ADMIN_PASSWORD) {
+    return json({ ok: false, error: "senha_invalida" }, 401);
+  }
+  if (!body.key) return json({ ok: false, error: "chave_invalida" }, 400);
+
+  await env.PHOTOS_BUCKET.delete(body.key);
+  return json({ ok: true });
+}
+
 async function handleAdmin(request, env) {
   const url = new URL(request.url);
   const pw = url.searchParams.get("pw");
@@ -249,6 +260,9 @@ export default {
       }
       if (url.pathname === "/photos/file" && request.method === "GET") {
         return await handlePhotoFile(request, env);
+      }
+      if (url.pathname === "/photos/delete" && request.method === "POST") {
+        return await handleDeletePhoto(request, env);
       }
       return json({ ok: false, error: "rota_nao_encontrada" }, 404);
     } catch (err) {
