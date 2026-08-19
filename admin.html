@@ -408,7 +408,10 @@ function renderPhotoGrid() {
   const photoCount = document.getElementById("photoCount");
   const visible = showOnlyFavorites ? allPhotos.filter(p => p.favorite) : allPhotos;
 
-  photoCount.textContent = `${allPhotos.length} arquivo(s) enviados${showOnlyFavorites ? ` · ${visible.length} favorita(s)` : ""}`;
+  const usedBytes = allPhotos.reduce((sum, p) => sum + p.size, 0);
+  const maxBytes = 9 * 1024 * 1024 * 1024;
+  const pct = ((usedBytes / maxBytes) * 100).toFixed(1);
+  photoCount.textContent = `${allPhotos.length} arquivo(s) enviados${showOnlyFavorites ? ` · ${visible.length} favorita(s)` : ""} · ${formatBytes(usedBytes)} de 9 GB usados (${pct}%)`;
 
   if (visible.length === 0) {
     photoGrid.innerHTML = `<p class="empty-msg">${showOnlyFavorites ? "Nenhuma foto favoritada ainda." : "Nenhuma foto enviada ainda."}</p>`;

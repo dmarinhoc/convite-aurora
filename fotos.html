@@ -268,6 +268,16 @@ const submitBtn = document.getElementById("submitBtn");
 const formView = document.getElementById("formView");
 const resultView = document.getElementById("resultView");
 
+(async function checkStorageStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/photos/status`);
+    const data = await res.json();
+    if (data.ok && data.full) renderFull();
+  } catch (err) {
+    // se a checagem falhar, deixa o convidado tentar enviar normalmente
+  }
+})();
+
 fileInput.addEventListener("change", () => {
   for (const file of fileInput.files) {
     selectedFiles.push(file);
@@ -328,21 +338,28 @@ submitBtn.addEventListener("click", async () => {
   try {
     const res = await fetch(`${API_BASE}/photos`, { method: "POST", body: formData });
     const data = await res.json();
-    if (!data.ok) throw new Error(data.error || "erro");
-    renderSuccess(data.uploaded);
+    if (!data.ok) {
+      if (data.error === "limite_atingido") { renderFull(); return; }
+      throw new Error(data.error || "erro");
+    }
+    renderSuccess(data.uploaded, data.limitReached);
   } catch (err) {
     renderError();
   }
 });
 
-function renderSuccess(count) {
+function renderSuccess(count, limitReached) {
   formView.style.display = "none";
   resultView.style.display = "block";
+  const extra = limitReached
+    ? "<p>Nosso álbum está quase cheinho, então talvez a gente não consiga receber mais fotos depois dessa. Obrigado por ter mandado as suas! 💛</p>"
+    : "";
   resultView.innerHTML = `
     <div class="success">
       <img src="assets/joaninha-folha.png" alt="Joaninha feliz">
       <h2>Enviado! 🎉</h2>
       <p>${count} arquivo(s) chegaram certinho. Obrigado por registrar esse momento com a gente! 💛</p>
+      ${extra}
       <button class="again-btn" id="againBtn">Enviar mais fotos</button>
     </div>`;
   document.getElementById("againBtn").addEventListener("click", resetForm);
@@ -358,6 +375,17 @@ function renderError() {
       <button class="again-btn" id="againBtn">Tentar novamente</button>
     </div>`;
   document.getElementById("againBtn").addEventListener("click", resetForm);
+}
+
+function renderFull() {
+  formView.style.display = "none";
+  resultView.style.display = "block";
+  resultView.innerHTML = `
+    <div class="success">
+      <img src="assets/joaninha-folha.png" alt="Joaninha feliz">
+      <h2>Álbum cheio de carinho! 🐞💛</h2>
+      <p>Recebemos tantas fotos e vídeos lindos que nosso álbum ficou completinho! Por enquanto não conseguimos guardar mais nenhum arquivo — mas fica o nosso muito obrigado por querer registrar esse dia com a gente. Guarde essa lembrança com você! 💕</p>
+    </div>`;
 }
 
 function resetForm() {

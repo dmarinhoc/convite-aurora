@@ -129,6 +129,21 @@ async function handleAdminReset(request, env) {
 
 const MAX_PHOTO_SIZE = 25 * 1024 * 1024; // 25MB por arquivo
 
+// Trava de segurança: fica um bom espaço abaixo do free tier do R2 (10GB)
+// pra nunca virar cobrança. Ajuste aqui se quiser mudar a margem.
+const MAX_TOTAL_BYTES = 9 * 1024 * 1024 * 1024; // 9GB
+
+async function getTotalStorageBytes(env) {
+  let total = 0;
+  let cursor;
+  do {
+    const listed = await env.PHOTOS_BUCKET.list({ limit: 1000, cursor });
+    for (const obj of listed.objects) total += obj.size;
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+  return total;
+}
+
 async function handleUploadPhotos(request, env) {
   const formData = await request.formData().catch(() => null);
   if (!formData) return json({ ok: false, error: "requisicao_invalida" }, 400);
@@ -136,29 +151,45 @@ async function handleUploadPhotos(request, env) {
   const files = formData.getAll("files");
   if (!files.length) return json({ ok: false, error: "nenhum_arquivo" }, 400);
 
+  let runningTotal = await getTotalStorageBytes(env);
+  if (runningTotal >= MAX_TOTAL_BYTES) {
+    return json({ ok: false, error: "limite_atingido", uploaded: 0, rejected: files.length }, 200);
+  }
+
+  const uploaderName = typeof formData.get("uploaderName") === "string"
+    ? formData.get("uploaderName").trim().slice(0, 40)
+    : "";
+
   let uploaded = 0;
   let rejected = 0;
+  let limitReached = false;
 
   for (const file of files) {
     const isFile = file && typeof file === "object" && "arrayBuffer" in file;
     if (!isFile) continue;
     if (file.size > MAX_PHOTO_SIZE) { rejected++; continue; }
     if (!/^image\/|^video\//.test(file.type)) { rejected++; continue; }
+    if (runningTotal + file.size > MAX_TOTAL_BYTES) { rejected++; limitReached = true; continue; }
 
     const safeName = (file.name || "arquivo").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-60);
     const key = `photo/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
-    const uploaderName = typeof formData.get("uploaderName") === "string"
-      ? formData.get("uploaderName").trim().slice(0, 40)
-      : "";
     await env.PHOTOS_BUCKET.put(key, file, {
       httpMetadata: { contentType: file.type },
       customMetadata: uploaderName ? { uploader: uploaderName } : {},
     });
+    runningTotal += file.size;
     uploaded++;
   }
 
-  if (!uploaded) return json({ ok: false, error: "nenhum_arquivo_valido" }, 400);
-  return json({ ok: true, uploaded, rejected });
+  if (!uploaded) {
+    return json({ ok: false, error: limitReached ? "limite_atingido" : "nenhum_arquivo_valido" }, limitReached ? 200 : 400);
+  }
+  return json({ ok: true, uploaded, rejected, limitReached });
+}
+
+async function handlePhotosStatus(request, env) {
+  const usedBytes = await getTotalStorageBytes(env);
+  return json({ ok: true, full: usedBytes >= MAX_TOTAL_BYTES, usedBytes, maxBytes: MAX_TOTAL_BYTES });
 }
 
 async function getFavoriteKeys(env) {
@@ -294,6 +325,9 @@ export default {
       }
       if (url.pathname === "/photos" && request.method === "POST") {
         return await handleUploadPhotos(request, env);
+      }
+      if (url.pathname === "/photos/status" && request.method === "GET") {
+        return await handlePhotosStatus(request, env);
       }
       if (url.pathname === "/photos/list" && request.method === "GET") {
         return await handleListPhotos(request, env);
