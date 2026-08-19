@@ -8,6 +8,11 @@
 //    Use só letras minúsculas e números, e não repita tokens.
 // 3. Cole este arquivo inteiro no editor do Worker (Cloudflare
 //    dashboard > Workers > aurora-rsvp > Edit code) e clique em Deploy.
+//
+// Fotos da festa: precisa de um bucket R2 chamado "aurora-rsvp-fotos"
+// (Storage & databases > R2 Object Storage > Create bucket), depois
+// bindar no Worker (Settings > Bindings > Add binding > R2 Bucket)
+// com o nome de variável PHOTOS_BUCKET.
 // ============================================================
 
 const GUEST_LIST = [
@@ -122,6 +127,73 @@ async function handleAdminReset(request, env) {
   return json({ ok: true, cleared: tokens });
 }
 
+const MAX_PHOTO_SIZE = 25 * 1024 * 1024; // 25MB por arquivo
+
+async function handleUploadPhotos(request, env) {
+  const formData = await request.formData().catch(() => null);
+  if (!formData) return json({ ok: false, error: "requisicao_invalida" }, 400);
+
+  const files = formData.getAll("files");
+  if (!files.length) return json({ ok: false, error: "nenhum_arquivo" }, 400);
+
+  let uploaded = 0;
+  let rejected = 0;
+
+  for (const file of files) {
+    const isFile = file && typeof file === "object" && "arrayBuffer" in file;
+    if (!isFile) continue;
+    if (file.size > MAX_PHOTO_SIZE) { rejected++; continue; }
+    if (!/^image\/|^video\//.test(file.type)) { rejected++; continue; }
+
+    const safeName = (file.name || "arquivo").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-60);
+    const key = `photo/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
+    await env.PHOTOS_BUCKET.put(key, file, { httpMetadata: { contentType: file.type } });
+    uploaded++;
+  }
+
+  if (!uploaded) return json({ ok: false, error: "nenhum_arquivo_valido" }, 400);
+  return json({ ok: true, uploaded, rejected });
+}
+
+async function handleListPhotos(request, env) {
+  const url = new URL(request.url);
+  const pw = url.searchParams.get("pw");
+  if (!env.ADMIN_PASSWORD || pw !== env.ADMIN_PASSWORD) {
+    return json({ ok: false, error: "senha_invalida" }, 401);
+  }
+
+  const listed = await env.PHOTOS_BUCKET.list({ limit: 1000, include: ["httpMetadata"] });
+  const photos = listed.objects
+    .sort((a, b) => new Date(b.uploaded) - new Date(a.uploaded))
+    .map((obj) => ({
+      key: obj.key,
+      size: obj.size,
+      uploaded: obj.uploaded,
+      contentType: obj.httpMetadata?.contentType || "",
+    }));
+
+  return json({ ok: true, count: photos.length, photos });
+}
+
+async function handlePhotoFile(request, env) {
+  const url = new URL(request.url);
+  const pw = url.searchParams.get("pw");
+  const key = url.searchParams.get("key");
+  if (!env.ADMIN_PASSWORD || pw !== env.ADMIN_PASSWORD) {
+    return new Response("Não autorizado", { status: 401, headers: CORS_HEADERS });
+  }
+  if (!key) return new Response("Chave inválida", { status: 400, headers: CORS_HEADERS });
+
+  const obj = await env.PHOTOS_BUCKET.get(key);
+  if (!obj) return new Response("Não encontrado", { status: 404, headers: CORS_HEADERS });
+
+  const headers = new Headers(CORS_HEADERS);
+  obj.writeHttpMetadata(headers);
+  headers.set("etag", obj.httpEtag);
+  headers.set("cache-control", "private, max-age=3600");
+  return new Response(obj.body, { headers });
+}
+
 async function handleAdmin(request, env) {
   const url = new URL(request.url);
   const pw = url.searchParams.get("pw");
@@ -168,6 +240,15 @@ export default {
       }
       if (url.pathname === "/admin/reset" && request.method === "POST") {
         return await handleAdminReset(request, env);
+      }
+      if (url.pathname === "/photos" && request.method === "POST") {
+        return await handleUploadPhotos(request, env);
+      }
+      if (url.pathname === "/photos/list" && request.method === "GET") {
+        return await handleListPhotos(request, env);
+      }
+      if (url.pathname === "/photos/file" && request.method === "GET") {
+        return await handlePhotoFile(request, env);
       }
       return json({ ok: false, error: "rota_nao_encontrada" }, 404);
     } catch (err) {

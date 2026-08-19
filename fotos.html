@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fotos da festa da Aurora 📸</title>
+<link rel="icon" href="assets/joaninha.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E63946;
+    --red-dark: #B3212C;
+    --black: #221F1F;
+    --white: #FFFFFF;
+    --cream: #FFFBF4;
+    --green: #3FA34D;
+    --green-dark: #2C7A3D;
+    --yellow: #FFC93C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Nunito', sans-serif;
+    color: var(--black);
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,201,60,0.18) 0, transparent 45%),
+      radial-gradient(circle at 90% 20%, rgba(63,163,77,0.14) 0, transparent 40%),
+      var(--cream);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  .container { max-width: 460px; margin: 0 auto; }
+
+  .hero { text-align: center; margin-bottom: 20px; }
+
+  .hero img.mascot {
+    width: 100px;
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.15));
+  }
+
+  .hero h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 26px;
+    color: var(--red);
+    margin: 10px 0 6px;
+  }
+
+  .hero p.subtitle {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .card {
+    background: var(--white);
+    border-radius: 22px;
+    padding: 22px 20px;
+    box-shadow: 0 10px 24px rgba(34,31,31,0.08);
+    border: 3px solid var(--black);
+    margin-bottom: 16px;
+  }
+
+  .privacy-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: #FFF5E6;
+    border: 2px solid var(--yellow);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+
+  .picker {
+    display: block;
+    border: 3px dashed var(--green);
+    border-radius: 18px;
+    padding: 26px 16px;
+    text-align: center;
+    cursor: pointer;
+    background: #F3FBF4;
+  }
+
+  .picker .icon { font-size: 34px; }
+  .picker .label {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    color: var(--green-dark);
+    font-size: 16px;
+    margin-top: 6px;
+  }
+  .picker .hint { font-size: 12.5px; color: #666; margin-top: 4px; }
+
+  input[type="file"] { display: none; }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #eee;
+  }
+
+  .preview-item img, .preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .preview-item .remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 20px;
+    cursor: pointer;
+  }
+
+  .count-label {
+    text-align: center;
+    font-weight: 800;
+    font-size: 13.5px;
+    color: var(--green-dark);
+    margin-top: 10px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--red);
+    color: var(--white);
+    border: 3px solid var(--black);
+    border-radius: 999px;
+    padding: 14px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    cursor: pointer;
+    margin-top: 18px;
+    box-shadow: 0 6px 0 var(--red-dark);
+  }
+
+  .submit-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--red-dark); }
+  .submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .success, .error-box {
+    text-align: center;
+    padding: 10px 0 4px;
+  }
+
+  .success img { width: 90px; margin-bottom: 8px; }
+
+  .success h2 {
+    font-family: 'Fredoka', sans-serif;
+    color: var(--green-dark);
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+
+  .error-box h2 {
+    font-family: 'Fredoka', sans-serif;
+    color: var(--red);
+    font-size: 19px;
+    margin: 0 0 6px;
+  }
+
+  .again-btn {
+    margin-top: 14px;
+    background: none;
+    border: none;
+    color: var(--green-dark);
+    font-weight: 800;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <img src="assets/joaninha.png" class="mascot" alt="Joaninha">
+    <h1>Registre esse dia! 📸🐞</h1>
+    <p class="subtitle">Manda pra gente as fotos e vídeos que você tirar na festa da Aurora</p>
+  </div>
+
+  <div class="card">
+    <div class="privacy-note">
+      🔒 <span>Só os anfitriões conseguem ver as fotos enviadas — você não terá acesso a elas depois, então pode mandar à vontade!</span>
+    </div>
+
+    <div id="formView">
+      <label class="picker" id="pickerLabel">
+        <div class="icon">📷</div>
+        <div class="label">Toque para escolher fotos ou vídeos</div>
+        <div class="hint">Pode selecionar vários de uma vez</div>
+        <input type="file" id="fileInput" accept="image/*,video/*" multiple capture="environment">
+      </label>
+
+      <div class="preview-grid" id="previewGrid"></div>
+      <p class="count-label" id="countLabel" style="display:none;"></p>
+
+      <button class="submit-btn" id="submitBtn" disabled>Enviar 💌</button>
+    </div>
+
+    <div id="resultView" style="display:none;"></div>
+  </div>
+
+  <footer>Com carinho, Rafael e Luiza 💛</footer>
+</div>
+
+<script>
+const API_BASE = "https://aurora-rsvp.dalmomarinho-c.workers.dev";
+let selectedFiles = [];
+
+const fileInput = document.getElementById("fileInput");
+const previewGrid = document.getElementById("previewGrid");
+const countLabel = document.getElementById("countLabel");
+const submitBtn = document.getElementById("submitBtn");
+const formView = document.getElementById("formView");
+const resultView = document.getElementById("resultView");
+
+fileInput.addEventListener("change", () => {
+  for (const file of fileInput.files) {
+    selectedFiles.push(file);
+  }
+  fileInput.value = "";
+  renderPreview();
+});
+
+function renderPreview() {
+  previewGrid.innerHTML = "";
+  selectedFiles.forEach((file, idx) => {
+    const item = document.createElement("div");
+    item.className = "preview-item";
+
+    const url = URL.createObjectURL(file);
+    if (file.type.startsWith("video/")) {
+      const video = document.createElement("video");
+      video.src = url;
+      item.appendChild(video);
+    } else {
+      const img = document.createElement("img");
+      img.src = url;
+      item.appendChild(img);
+    }
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove";
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => {
+      selectedFiles.splice(idx, 1);
+      renderPreview();
+    });
+    item.appendChild(removeBtn);
+
+    previewGrid.appendChild(item);
+  });
+
+  if (selectedFiles.length > 0) {
+    countLabel.style.display = "block";
+    countLabel.textContent = `${selectedFiles.length} arquivo(s) selecionado(s)`;
+    submitBtn.disabled = false;
+  } else {
+    countLabel.style.display = "none";
+    submitBtn.disabled = true;
+  }
+}
+
+submitBtn.addEventListener("click", async () => {
+  if (!selectedFiles.length) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Enviando... não feche a página";
+
+  const formData = new FormData();
+  selectedFiles.forEach((file) => formData.append("files", file));
+
+  try {
+    const res = await fetch(`${API_BASE}/photos`, { method: "POST", body: formData });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "erro");
+    renderSuccess(data.uploaded);
+  } catch (err) {
+    renderError();
+  }
+});
+
+function renderSuccess(count) {
+  formView.style.display = "none";
+  resultView.style.display = "block";
+  resultView.innerHTML = `
+    <div class="success">
+      <img src="assets/joaninha-folha.png" alt="Joaninha feliz">
+      <h2>Enviado! 🎉</h2>
+      <p>${count} arquivo(s) chegaram certinho. Obrigado por registrar esse momento com a gente! 💛</p>
+      <button class="again-btn" id="againBtn">Enviar mais fotos</button>
+    </div>`;
+  document.getElementById("againBtn").addEventListener("click", resetForm);
+}
+
+function renderError() {
+  formView.style.display = "none";
+  resultView.style.display = "block";
+  resultView.innerHTML = `
+    <div class="error-box">
+      <h2>Ops! 🐞</h2>
+      <p>Não conseguimos enviar agora. Verifique sua internet e tente de novo.</p>
+      <button class="again-btn" id="againBtn">Tentar novamente</button>
+    </div>`;
+  document.getElementById("againBtn").addEventListener("click", resetForm);
+}
+
+function resetForm() {
+  selectedFiles = [];
+  renderPreview();
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Enviar 💌";
+  resultView.style.display = "none";
+  resultView.innerHTML = "";
+  formView.style.display = "block";
+}
+</script>
+</body>
+</html>

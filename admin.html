@@ -146,6 +146,50 @@
   .toolbar .refresh { background: var(--green); border-color: var(--green-dark); }
 
   .empty-msg { text-align: center; padding: 30px; font-weight: 700; color: #777; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .tab-btn {
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--black);
+  }
+  .tab-btn.active { background: var(--red); color: var(--white); border-color: var(--red-dark); }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .photo-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--black);
+    background: #eee;
+    display: block;
+  }
+  .photo-item img, .photo-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .photo-item .meta {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(34,31,31,0.75);
+    color: var(--white);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 6px;
+  }
+  .photo-count { font-weight: 800; margin-bottom: 14px; color: #555; font-size: 13.5px; }
 </style>
 </head>
 <body>
@@ -161,14 +205,29 @@
 
   <div id="panel" style="display:none;">
     <h1><img src="assets/joaninha.png" alt="">Painel — Aurora 2 aninhos 🐞</h1>
-    <p class="subtitle">Confirmações de presença em tempo real</p>
+    <p class="subtitle">Confirmações de presença e fotos da festa</p>
 
-    <div class="toolbar">
-      <div class="summary" id="summary" style="flex:1; margin-bottom:0;"></div>
-      <button class="action-btn refresh" id="refreshBtn">↻ Atualizar</button>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabConfirm">Confirmações</button>
+      <button class="tab-btn" id="tabPhotos">Fotos</button>
     </div>
 
-    <div id="tableWrap"></div>
+    <div id="confirmSection">
+      <div class="toolbar">
+        <div class="summary" id="summary" style="flex:1; margin-bottom:0;"></div>
+        <button class="action-btn refresh" id="refreshBtn">↻ Atualizar</button>
+      </div>
+
+      <div id="tableWrap"></div>
+    </div>
+
+    <div id="photosSection" style="display:none;">
+      <div class="toolbar">
+        <p class="photo-count" id="photoCount" style="margin:0;">Carregando fotos...</p>
+        <button class="action-btn refresh" id="refreshPhotosBtn">↻ Atualizar</button>
+      </div>
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
   </div>
 
 </div>
@@ -275,6 +334,66 @@ document.getElementById("refreshBtn").addEventListener("click", () => {
   const pw = savedPassword();
   if (pw) showPanel(pw);
 });
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+async function loadPhotos() {
+  const pw = savedPassword();
+  const photoGrid = document.getElementById("photoGrid");
+  const photoCount = document.getElementById("photoCount");
+  photoCount.textContent = "Carregando fotos...";
+  photoGrid.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/photos/list?pw=${encodeURIComponent(pw)}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "erro");
+
+    photoCount.textContent = `${data.count} arquivo(s) enviados`;
+
+    if (data.count === 0) {
+      photoGrid.innerHTML = `<p class="empty-msg">Nenhuma foto enviada ainda.</p>`;
+      return;
+    }
+
+    photoGrid.innerHTML = data.photos.map(p => {
+      const fileUrl = `${API_BASE}/photos/file?key=${encodeURIComponent(p.key)}&pw=${encodeURIComponent(pw)}`;
+      const isVideo = p.contentType.startsWith("video/");
+      const media = isVideo
+        ? `<video src="${fileUrl}" muted></video>`
+        : `<img src="${fileUrl}" loading="lazy" alt="">`;
+      const when = p.uploaded ? new Date(p.uploaded).toLocaleString("pt-BR") : "";
+      return `
+        <a class="photo-item" href="${fileUrl}" target="_blank" rel="noopener">
+          ${media}
+          <div class="meta">${when} · ${formatBytes(p.size)}</div>
+        </a>`;
+    }).join("");
+  } catch (err) {
+    photoCount.textContent = "Erro ao carregar fotos.";
+  }
+}
+
+document.getElementById("tabConfirm").addEventListener("click", () => {
+  document.getElementById("tabConfirm").classList.add("active");
+  document.getElementById("tabPhotos").classList.remove("active");
+  document.getElementById("confirmSection").style.display = "block";
+  document.getElementById("photosSection").style.display = "none";
+});
+
+document.getElementById("tabPhotos").addEventListener("click", () => {
+  document.getElementById("tabPhotos").classList.add("active");
+  document.getElementById("tabConfirm").classList.remove("active");
+  document.getElementById("photosSection").style.display = "block";
+  document.getElementById("confirmSection").style.display = "none";
+  loadPhotos();
+});
+
+document.getElementById("refreshPhotosBtn").addEventListener("click", loadPhotos);
 
 const existingPw = savedPassword();
 if (existingPw) showPanel(existingPw);
