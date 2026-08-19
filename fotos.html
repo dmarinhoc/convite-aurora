@@ -78,6 +78,23 @@
     margin-bottom: 18px;
   }
 
+  .name-label {
+    display: block;
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .name-input {
+    width: 100%;
+    border: 2px solid #EFE3D6;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
   .picker {
     display: block;
     border: 3px dashed var(--green);
@@ -218,6 +235,9 @@
     </div>
 
     <div id="formView">
+      <label class="name-label" for="uploaderName">Seu nome (opcional)</label>
+      <input type="text" id="uploaderName" class="name-input" placeholder="Pra sabermos quem tirou essas fotos lindas :)" maxlength="40">
+
       <label class="picker" id="pickerLabel">
         <div class="icon">📷</div>
         <div class="label">Toque para escolher fotos ou vídeos</div>
@@ -303,6 +323,7 @@ submitBtn.addEventListener("click", async () => {
 
   const formData = new FormData();
   selectedFiles.forEach((file) => formData.append("files", file));
+  formData.append("uploaderName", document.getElementById("uploaderName").value.trim());
 
   try {
     const res = await fetch(`${API_BASE}/photos`, { method: "POST", body: formData });

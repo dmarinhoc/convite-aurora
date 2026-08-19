@@ -204,6 +204,34 @@
     z-index: 2;
   }
   .photo-count { font-weight: 800; margin-bottom: 14px; color: #555; font-size: 13.5px; }
+
+  .photo-item .checkbox {
+    position: absolute;
+    top: 6px; left: 6px;
+    width: 20px; height: 20px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .photo-item .fav-btn {
+    position: absolute;
+    top: 5px; right: 34px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid var(--black);
+    font-size: 13px;
+    line-height: 20px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .photo-item .fav-btn.active { background: var(--yellow); }
+  .photo-item.is-favorite { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow); }
+
+  .photos-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .action-btn.filter-btn { width: auto; padding: 9px 16px; font-size: 13px; background: var(--white); color: var(--black); }
+  .action-btn.filter-btn.active { background: var(--yellow); border-color: var(--black); }
+  .action-btn.download-btn { width: auto; padding: 9px 16px; font-size: 13px; background: var(--green); border-color: var(--green-dark); }
+  .action-btn.download-btn:disabled { opacity: 0.6; cursor: default; }
 </style>
 </head>
 <body>
@@ -238,7 +266,11 @@
     <div id="photosSection" style="display:none;">
       <div class="toolbar">
         <p class="photo-count" id="photoCount" style="margin:0;">Carregando fotos...</p>
-        <button class="action-btn refresh" id="refreshPhotosBtn">↻ Atualizar</button>
+        <div class="photos-toolbar-actions">
+          <button class="action-btn filter-btn" id="filterFavBtn">☆ Só favoritas</button>
+          <button class="action-btn download-btn" id="downloadSelectedBtn" disabled>⬇ Baixar selecionadas (0)</button>
+          <button class="action-btn refresh" id="refreshPhotosBtn">↻ Atualizar</button>
+        </div>
       </div>
       <div class="photo-grid" id="photoGrid"></div>
     </div>
@@ -246,6 +278,7 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 const API_BASE = "https://aurora-rsvp.dalmomarinho-c.workers.dev"; // ajuste se o nome do Worker mudar
 const STATUS_LABELS = {
@@ -355,68 +388,173 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-async function loadPhotos() {
+let allPhotos = [];
+let selectedKeys = new Set();
+let showOnlyFavorites = false;
+
+function photoFileUrl(key) {
   const pw = savedPassword();
+  return `${API_BASE}/photos/file?key=${encodeURIComponent(key)}&pw=${encodeURIComponent(pw)}`;
+}
+
+function updateDownloadBtn() {
+  const btn = document.getElementById("downloadSelectedBtn");
+  btn.textContent = `⬇ Baixar selecionadas (${selectedKeys.size})`;
+  btn.disabled = selectedKeys.size === 0;
+}
+
+function renderPhotoGrid() {
   const photoGrid = document.getElementById("photoGrid");
   const photoCount = document.getElementById("photoCount");
+  const visible = showOnlyFavorites ? allPhotos.filter(p => p.favorite) : allPhotos;
+
+  photoCount.textContent = `${allPhotos.length} arquivo(s) enviados${showOnlyFavorites ? ` · ${visible.length} favorita(s)` : ""}`;
+
+  if (visible.length === 0) {
+    photoGrid.innerHTML = `<p class="empty-msg">${showOnlyFavorites ? "Nenhuma foto favoritada ainda." : "Nenhuma foto enviada ainda."}</p>`;
+    return;
+  }
+
+  photoGrid.innerHTML = visible.map(p => {
+    const fileUrl = photoFileUrl(p.key);
+    const isVideo = p.contentType.startsWith("video/");
+    const media = isVideo
+      ? `<video src="${fileUrl}" muted></video>`
+      : `<img src="${fileUrl}" loading="lazy" alt="">`;
+    const when = p.uploaded ? new Date(p.uploaded).toLocaleString("pt-BR") : "";
+    const byLine = p.uploader ? ` · por ${p.uploader}` : "";
+    const checked = selectedKeys.has(p.key) ? "checked" : "";
+    return `
+      <div class="photo-item ${p.favorite ? "is-favorite" : ""}" data-key="${p.key.replace(/"/g, "&quot;")}">
+        <input type="checkbox" class="checkbox" ${checked}>
+        <button class="fav-btn ${p.favorite ? "active" : ""}" title="Favoritar">${p.favorite ? "★" : "☆"}</button>
+        <button class="delete-btn" title="Excluir">×</button>
+        <a href="${fileUrl}" target="_blank" rel="noopener">
+          ${media}
+          <div class="meta">${when} · ${formatBytes(p.size)}${byLine}</div>
+        </a>
+      </div>`;
+  }).join("");
+
+  photoGrid.querySelectorAll(".checkbox").forEach(cb => {
+    cb.addEventListener("click", (e) => {
+      const key = cb.closest(".photo-item").dataset.key;
+      if (cb.checked) selectedKeys.add(key); else selectedKeys.delete(key);
+      updateDownloadBtn();
+    });
+  });
+
+  photoGrid.querySelectorAll(".fav-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const item = btn.closest(".photo-item");
+      const key = item.dataset.key;
+      const photo = allPhotos.find(p => p.key === key);
+      const newFavorite = !photo.favorite;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/photos/favorite`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pw: savedPassword(), key, favorite: newFavorite }),
+        });
+        const result = await res.json();
+        if (!result.ok) throw new Error(result.error || "erro");
+        photo.favorite = newFavorite;
+        renderPhotoGrid();
+      } catch (err) {
+        alert("Não foi possível favoritar agora.");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  photoGrid.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const item = btn.closest(".photo-item");
+      const key = item.dataset.key;
+      if (!confirm("Excluir esse arquivo permanentemente?")) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/photos/delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pw: savedPassword(), key }),
+        });
+        const result = await res.json();
+        if (!result.ok) throw new Error(result.error || "erro");
+        allPhotos = allPhotos.filter(p => p.key !== key);
+        selectedKeys.delete(key);
+        updateDownloadBtn();
+        renderPhotoGrid();
+      } catch (err) {
+        alert("Não foi possível excluir agora.");
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+async function loadPhotos() {
+  const pw = savedPassword();
+  const photoCount = document.getElementById("photoCount");
   photoCount.textContent = "Carregando fotos...";
-  photoGrid.innerHTML = "";
+  document.getElementById("photoGrid").innerHTML = "";
+  selectedKeys = new Set();
+  updateDownloadBtn();
 
   try {
     const res = await fetch(`${API_BASE}/photos/list?pw=${encodeURIComponent(pw)}`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || "erro");
-
-    photoCount.textContent = `${data.count} arquivo(s) enviados`;
-
-    if (data.count === 0) {
-      photoGrid.innerHTML = `<p class="empty-msg">Nenhuma foto enviada ainda.</p>`;
-      return;
-    }
-
-    photoGrid.innerHTML = data.photos.map(p => {
-      const fileUrl = `${API_BASE}/photos/file?key=${encodeURIComponent(p.key)}&pw=${encodeURIComponent(pw)}`;
-      const isVideo = p.contentType.startsWith("video/");
-      const media = isVideo
-        ? `<video src="${fileUrl}" muted></video>`
-        : `<img src="${fileUrl}" loading="lazy" alt="">`;
-      const when = p.uploaded ? new Date(p.uploaded).toLocaleString("pt-BR") : "";
-      return `
-        <div class="photo-item" data-key="${p.key.replace(/"/g, "&quot;")}">
-          <button class="delete-btn" title="Excluir">×</button>
-          <a href="${fileUrl}" target="_blank" rel="noopener">
-            ${media}
-            <div class="meta">${when} · ${formatBytes(p.size)}</div>
-          </a>
-        </div>`;
-    }).join("");
-
-    photoGrid.querySelectorAll(".delete-btn").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        const item = btn.closest(".photo-item");
-        const key = item.dataset.key;
-        if (!confirm("Excluir esse arquivo permanentemente?")) return;
-        btn.disabled = true;
-        try {
-          const res = await fetch(`${API_BASE}/photos/delete`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pw: savedPassword(), key }),
-          });
-          const result = await res.json();
-          if (!result.ok) throw new Error(result.error || "erro");
-          item.remove();
-        } catch (err) {
-          alert("Não foi possível excluir agora.");
-          btn.disabled = false;
-        }
-      });
-    });
+    allPhotos = data.photos;
+    renderPhotoGrid();
   } catch (err) {
     photoCount.textContent = "Erro ao carregar fotos.";
   }
 }
+
+document.getElementById("filterFavBtn").addEventListener("click", () => {
+  showOnlyFavorites = !showOnlyFavorites;
+  document.getElementById("filterFavBtn").classList.toggle("active", showOnlyFavorites);
+  document.getElementById("filterFavBtn").textContent = showOnlyFavorites ? "★ Só favoritas" : "☆ Só favoritas";
+  renderPhotoGrid();
+});
+
+document.getElementById("downloadSelectedBtn").addEventListener("click", async () => {
+  if (!selectedKeys.size) return;
+  const btn = document.getElementById("downloadSelectedBtn");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Preparando .zip...";
+
+  try {
+    const zip = new JSZip();
+    const keys = [...selectedKeys];
+    for (const key of keys) {
+      const res = await fetch(photoFileUrl(key));
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const filename = key.split("/").pop();
+      zip.file(filename, blob);
+    }
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fotos-aurora.zip";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Não foi possível gerar o .zip agora.");
+  } finally {
+    btn.disabled = false;
+    updateDownloadBtn();
+  }
+});
 
 document.getElementById("tabConfirm").addEventListener("click", () => {
   document.getElementById("tabConfirm").classList.add("active");

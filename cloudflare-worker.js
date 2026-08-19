@@ -147,12 +147,23 @@ async function handleUploadPhotos(request, env) {
 
     const safeName = (file.name || "arquivo").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-60);
     const key = `photo/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
-    await env.PHOTOS_BUCKET.put(key, file, { httpMetadata: { contentType: file.type } });
+    const uploaderName = typeof formData.get("uploaderName") === "string"
+      ? formData.get("uploaderName").trim().slice(0, 40)
+      : "";
+    await env.PHOTOS_BUCKET.put(key, file, {
+      httpMetadata: { contentType: file.type },
+      customMetadata: uploaderName ? { uploader: uploaderName } : {},
+    });
     uploaded++;
   }
 
   if (!uploaded) return json({ ok: false, error: "nenhum_arquivo_valido" }, 400);
   return json({ ok: true, uploaded, rejected });
+}
+
+async function getFavoriteKeys(env) {
+  const raw = await env.RSVP_KV.get("photo_favorites");
+  return raw ? new Set(JSON.parse(raw)) : new Set();
 }
 
 async function handleListPhotos(request, env) {
@@ -162,7 +173,11 @@ async function handleListPhotos(request, env) {
     return json({ ok: false, error: "senha_invalida" }, 401);
   }
 
-  const listed = await env.PHOTOS_BUCKET.list({ limit: 1000, include: ["httpMetadata"] });
+  const [listed, favorites] = await Promise.all([
+    env.PHOTOS_BUCKET.list({ limit: 1000, include: ["httpMetadata", "customMetadata"] }),
+    getFavoriteKeys(env),
+  ]);
+
   const photos = listed.objects
     .sort((a, b) => new Date(b.uploaded) - new Date(a.uploaded))
     .map((obj) => ({
@@ -170,9 +185,28 @@ async function handleListPhotos(request, env) {
       size: obj.size,
       uploaded: obj.uploaded,
       contentType: obj.httpMetadata?.contentType || "",
+      uploader: obj.customMetadata?.uploader || "",
+      favorite: favorites.has(obj.key),
     }));
 
   return json({ ok: true, count: photos.length, photos });
+}
+
+async function handleToggleFavorite(request, env) {
+  const body = await request.json().catch(() => null);
+  if (!body || body.pw !== env.ADMIN_PASSWORD) {
+    return json({ ok: false, error: "senha_invalida" }, 401);
+  }
+  if (!body.key) return json({ ok: false, error: "chave_invalida" }, 400);
+
+  const favorites = await getFavoriteKeys(env);
+  if (body.favorite) {
+    favorites.add(body.key);
+  } else {
+    favorites.delete(body.key);
+  }
+  await env.RSVP_KV.put("photo_favorites", JSON.stringify([...favorites]));
+  return json({ ok: true });
 }
 
 async function handlePhotoFile(request, env) {
@@ -202,6 +236,12 @@ async function handleDeletePhoto(request, env) {
   if (!body.key) return json({ ok: false, error: "chave_invalida" }, 400);
 
   await env.PHOTOS_BUCKET.delete(body.key);
+
+  const favorites = await getFavoriteKeys(env);
+  if (favorites.delete(body.key)) {
+    await env.RSVP_KV.put("photo_favorites", JSON.stringify([...favorites]));
+  }
+
   return json({ ok: true });
 }
 
@@ -263,6 +303,9 @@ export default {
       }
       if (url.pathname === "/photos/delete" && request.method === "POST") {
         return await handleDeletePhoto(request, env);
+      }
+      if (url.pathname === "/photos/favorite" && request.method === "POST") {
+        return await handleToggleFavorite(request, env);
       }
       return json({ ok: false, error: "rota_nao_encontrada" }, 404);
     } catch (err) {
